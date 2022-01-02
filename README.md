@@ -3,7 +3,9 @@
 Object detection system trained by hybrid-supervision/weakly semi-supervision (HSOD/WSSOD):  
 This project is based on [CenterNet](https://github.com/xingyizhou/CenterNet).  
 ![](readme/fig2.png)
----  
+
+***
+ 
 ![](readme/fig1.png)
        
 
