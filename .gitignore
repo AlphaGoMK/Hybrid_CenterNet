@@ -8,7 +8,7 @@ src.tar
 venv/
 .idea/
 
-*.jpg
-*.png
+# *.jpg
+# *.png
 *.pth
 *.pt

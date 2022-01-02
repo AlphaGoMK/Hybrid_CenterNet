@@ -23,8 +23,6 @@ After installation, follow the instructions in [DATA.md](readme/DATA.md) to setu
 Run `python start.py ctdet` in *src/* folder, then open `http://127.0.0.1:9766/` in browser.  
 Video demo is available at [bilibili](https://www.bilibili.com/video/BV1LU4y1K75W/).
 
-![](readme/demo.gif)  
-
 ## Training & Testing
 
 - Weakly-supervised training  
