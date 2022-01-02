@@ -12,3 +12,4 @@ venv/
 # *.png
 *.pth
 *.pt
+.DS_Store
