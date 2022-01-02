@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--
+    Document Title
+    =============================================
+    -->
+    <title>Detection Tools</title>
+    <!--
+    Favicons
+    =============================================
+    -->
+
+    <link rel="icon" type="image/ico" href="favicon.ico">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="assets/images/favicons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <!--
+    Stylesheets
+    =============================================
+
+    -->
+    <!-- Default stylesheets-->
+    <link href="assets/lib_js/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Template specific stylesheets-->
+    <link href="assets/lib_js/owl.carousel/dist/assets/owl.carousel.css" rel="stylesheet">
+    <!-- Main stylesheet and color file-->
+    <link href="assets/css/style.css?a=1" rel="stylesheet">
+    <link id="color-scheme" href="assets/css/colors/default.css?a=1" rel="stylesheet">
+</head>
+
+
+<body data-spy="scroll" data-offset="60">
+<main>
+
+    <div class="navbar-inverse">
+        <ul class="nav nav-tabs">
+            {% if is_image %}
+            <li class="active"><a href="#pane1" data-toggle="tab">图片检测</a></li>
+            {% else %}
+            <li><a href="#pane1_inactive" data-toggle="tab">图片检测</a></li>
+            {% endif %}
+
+            {% if is_image %}
+            <li><a href="#pane2_inactive" data-toggle="tab">视频检测</a></li>
+            {% else %}
+            <li class="active"><a href="#pane2" data-toggle="tab">视频检测</a></li>
+            {% endif %}
+
+        </ul>
+    </div>
+
+    <div class="tab-content">
+
+        {% if is_image %}
+        <div class="tab-pane active" id="pane1">
+        {% else %}
+        <div class="tab-pane" id="pane1_inactive">
+        {% endif %}
+
+            <section class="top-part">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xs-12 col-xs-offset-0 col-sm-10 col-sm-offset-1 col-lg-8 col-lg-offset-2">
+                            <h1>- Detection Tools -</h1>
+                            <h2>图像目标检测工具</h2>
+                            <!-- <p>	Get the full pack today for free!</p> -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- 这里面添加上传等效果 -->
+            <div class="alert-banner">
+
+                <form action="/upload_file" onsubmit="return validate_form(this)"
+                      method="POST" enctype='multipart/form-data'>
+
+
+                    <div class="upload_file row">
+                        <table class="upload_table">
+                            <tr>
+                                <td>
+                                    <label for="file">选择待检测的图片文件</label><br>
+                                    <input type="file" title="test" id="file"
+                                           accept=".jpg" name="file" required>
+                                </td>
+
+                                <td>
+                                    <label for="file">使用混合监督和损失函数优化模型</label><br>
+                                    <!-- Android Style: No radius -->
+                                    <!--https://gitbrent.github.io/bootstrap4-toggle/-->
+                                    <style>
+                                        .toggle.android {
+                                            border-radius: 0px;
+                                        }
+
+                                        .toggle.android .toggle-handle {
+                                            border-radius: 0px;
+                                        }
+                                    </style>
+                                    <input type="checkbox" name="hyb_model" checked data-toggle="toggle"
+                                           data-style="android"
+                                           data-onstyle="success" data-offstyle="warning" data-width="70"
+                                           data-height="40">
+                                </td>
+
+                                <td>
+                                    <label for="hpro">设置阈值</label> 0.<span id="label_hpro">5</span>
+                                    <input type="range" name="nms_thres" min="0" max="9" id="hpro"
+                                           onchange="change_range(this)"
+                                           list="tickmarks"/>
+
+                                    <datalist id="tickmarks">
+                                        <option value="1" label='1'>
+                                        <option value="2">
+                                        <option value="3">
+                                        <option value="4">
+                                        <option value="5" label="5">
+                                        <option value="6">
+                                        <option value="7">
+                                        <option value="8">
+                                        <option value="9">
+                                        <option value="10" label="10">
+                                    </datalist>
+                                </td>
+
+                                <td id="upload_btn_td">
+                                    <button type="submit" class="btn btn-danger " id='upload_btn'>检测</button>
+                                </td>
+
+                            </tr>
+                        </table>
+                    </div>
+
+
+                </form>
+
+            </div>
+
+            <section class="variant-part">
+                <div class="container">
+
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-lg-12 text-intro">
+
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+
+                        <div class="variant col-xs-4 col-sm-4 col-lg-4 " id="video_div_ori">
+
+                            <h2>原始图片 </h2>
+
+                            <img class="img-thumbnail" src="upload/{{ image_name_ori }}.jpg" id="img_origin">
+
+                        </div>
+
+                        <!--            <div class="variant col-xs-1 col-sm-1 col-lg-1" id="img_margin">-->
+
+                        <div class="variant col-xs-4 col-sm-4 col-lg-4" id="video_div_res">
+
+                            <h2>检测结果 </h2>
+
+                            <img class="img-thumbnail" src="results/{{ image_name_res }}.jpg" id="img_result">
+
+                        </div>
+
+
+                        <div class="variant col-xs-4 col-sm-4 col-lg-4" id="hm_res">
+
+                            <h2>热度图结果 </h2>
+                            <div class="wrap-fluid">
+                                <div class="float-fulid-list1">
+                                    <ul class="clearfix">
+                                        {% for i in img_hm %}
+                                        <li class="item">
+                                            <img class="img-thumbnail" src="{{ i[1] }}">
+
+                                            <span>{{ i[0] }}</span>
+                                        </li>
+                                        {% endfor %}
+
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+
+        </div>
+
+
+            <!--        video-->
+            <!--        video-->
+            <!--        video-->
+
+
+        {% if is_image %}
+        <div class="tab-pane" id="pane2_inactive">
+        {% else %}
+        <div class="tab-pane active" id="pane2">
+        {% endif %}
+
+            <section class="top-part">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-xs-12 col-xs-offset-0 col-sm-10 col-sm-offset-1 col-lg-8 col-lg-offset-2">
+                            <h1>- Video Detection Tools -</h1>
+                            <h2> 视频目标检测工具</h2>
+                            <!-- <p>	Get the full pack today for free!</p> -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- 这里面添加上传等效果 -->
+            <div class="alert-banner">
+
+                <form action="/upload_file" onsubmit="return validate_form(this)"
+                      method="POST" enctype='multipart/form-data'>
+
+                    <div class="upload_file row">
+                        <table class="upload_table">
+                            <tr>
+                                <td>
+                                    <label for="file">选择待检测的视频文件</label><br>
+                                    <input type="file" title="test" id="file_vid"
+                                           accept=".mp4" name="file" required>
+                                </td>
+
+                                <td>
+                                    <label for="file">使用混合监督和损失函数优化模型</label><br>
+                                    <!-- Android Style: No radius -->
+                                    <!--https://gitbrent.github.io/bootstrap4-toggle/-->
+                                    <style>
+                                        .toggle.android {
+                                            border-radius: 0px;
+                                        }
+
+                                        .toggle.android .toggle-handle {
+                                            border-radius: 0px;
+                                        }
+                                    </style>
+                                    <input type="checkbox" checked data-toggle="toggle" data-style="android"
+                                           data-onstyle="success" data-offstyle="warning" data-width="70"
+                                           data-height="40">
+                                </td>
+
+                                <td>
+                                    <label for="hpro">设置NMS阈值</label> 0.<span id="label_hpro_vid">5</span>
+                                    <input type="range" name="nms_thres" min="0" max="9" id="hpro_vid"
+                                           onchange="change_range_vid(this)"
+                                           list="tickmarks_vid"/>
+
+                                    <datalist id="tickmarks_vid">
+                                        <option value="1" label='1'>
+                                        <option value="2">
+                                        <option value="3">
+                                        <option value="4">
+                                        <option value="5" label="5">
+                                        <option value="6">
+                                        <option value="7">
+                                        <option value="8">
+                                        <option value="9">
+                                        <option value="10" label="10">
+                                    </datalist>
+                                </td>
+
+
+                                <td id="upload_btn_td_vid">
+                                    <button type="submit" class="btn btn-danger " id='upload_btn_vid'>检测
+                                    </button>
+                                </td>
+
+                            </tr>
+                        </table>
+                    </div>
+
+                </form>
+
+            </div>
+
+            <section class="variant-part">
+                <div class="container">
+
+                    <div class="row">
+                        <div class="col-xs-12 col-sm-12 col-lg-12 text-intro">
+
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+
+                        <div class="variant col-xs-12 col-sm-6 col-lg-6 " id="video_div">
+                            <h2>原始视频 </h2>
+                            <video class="video_play" id="video_ori" ontimeupdate="video_ori_update" controls
+                                   autoplay loop>
+
+                                <source src="upload/{{ video_name_ori }}.mp4" type="video/mp4"/>
+                            </video>
+
+                        </div>
+
+
+                        <div class="variant col-xs-12 col-sm-6 col-lg-6 " id="video_div">
+                            <h2>检测结果 </h2>
+
+                            <video class="video_play" id="video_slomo" ontimeupdate="video_slomo_update"
+                                   controls autoplay loop>
+                                <source src="results/{{ video_name_res }}.mp4" type="video/mp4"/>
+                            </video>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+            </section>
+
+
+        </div>
+
+
+    </div>
+
+    <footer id="footer_vid"><span class="copyright">design by Mu Kai </span> <br>
+        <span class="email">Email: mukai@buaa.edu.cn </span>
+    </footer>
+
+
+
+</main>
+<!--
+JavaScripts
+=============================================
+-->
+<script src="assets/lib_js/jquery/dist/jquery.js"></script>
+<script src="assets/lib_js/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="assets/lib_js/owl.carousel/dist/owl.carousel.js"></script>
+<script src="assets/lib_js/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/lib_js/bootstrap/dist/js/bootstrap.bundle.js"></script>
+<script src="assets/lib_js/ajaxchimp/jquery.ajaxchimp.js"></script>
+<script src="assets/js/main.js"></script>
+<script src="assets/js/myjs.js"></script>
+
+
+<link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/css/bootstrap4-toggle.min.css"
+      rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.1/js/bootstrap4-toggle.min.js"></script>
+
+
+</body>
+</html>

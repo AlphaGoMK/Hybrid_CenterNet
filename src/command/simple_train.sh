@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python -m torch.distributed.launch --nproc_per_node=8 main.py ctdet --dataset=coco35 --arch dlav0camsplit_34 --load_model ../exp/ctdet/camsplit_weak_train/model_last.pth --exp_id=camsplit_train --batch_size 64

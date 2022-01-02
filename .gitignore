@@ -1,0 +1,14 @@
+#
+
+data/
+exp/
+images/
+models/
+src.tar
+venv/
+.idea/
+
+*.jpg
+*.png
+*.pth
+*.pt
