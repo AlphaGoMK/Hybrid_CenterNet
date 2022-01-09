@@ -24,8 +24,6 @@ _sample_factory = {
     'ctdet': CTDetDataset,
 }
 
-#CTDetDataset = CTDetDataset
-
 def get_dataset(dataset, task):
     class Dataset(dataset_factory[dataset], _sample_factory[task]):
         pass

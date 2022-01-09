@@ -21,8 +21,7 @@ class PascalVOC(data.Dataset):
 
     def __init__(self, opt, split):
         super(PascalVOC, self).__init__()
-        # self.data_dir = os.path.join(opt.data_dir, 'voc')
-        self.data_dir = 'tools/voc'
+        self.data_dir = 'tools/voc' # TODO configure based on your path
         self.img_dir = os.path.join(self.data_dir, 'images')
         _ann_name = {'train': 'trainval0712', 'val': 'test2007'}
         self.annot_path = os.path.join(
@@ -76,9 +75,6 @@ class PascalVOC(data.Dataset):
                   open('{}/results.json'.format(save_dir), 'w'))
 
     def run_eval(self, results, save_dir):
-        # result_json = os.path.join(save_dir, "results.json")
-        # detections  = self.convert_eval_format(results)
-        # json.dump(detections, open(result_json, "w"))
         self.save_results(results, save_dir)
         os.system('python tools/reval.py ' + \
                   '{}/results.json'.format(save_dir))

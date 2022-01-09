@@ -116,7 +116,6 @@ class CTDetDataset(data.Dataset):
         center_ratio = self.opt.center_ratio
 
         target_box = torch.zeros(0, 4)
-        target_cat = torch.zeros(0, 1)
 
         for k in range(num_objs):
             ann = anns[k]
@@ -163,14 +162,6 @@ class CTDetDataset(data.Dataset):
                 valid_obj += 1
                 cat_id.append(cls_id)
 
-                # with open('%s_%.3f_%.3f.txt'%(cls_id, ct[0], ct[1]), 'w+') as f:
-                #     for i in range(hm[cls_id].shape[0]):
-                #
-                #         for j in range(hm[cls_id].shape[1]):
-                #             f.write('%.3f '%hm[cls_id][i][j])
-                #         f.write('\n')
-                # assert False
-
         if valid_obj == 0:
             offset_map = torch.zeros(2, output_h, output_w).long()
             cat_target = torch.zeros(num_classes).long()
@@ -203,8 +194,6 @@ class CTDetDataset(data.Dataset):
             cat_target = torch.zeros(num_classes).long()
             cat_target[cat_id] = 1
 
-        # print('='*20, offset_map.shape, ct_mask[None,].shape)
-
         ret = {'input': inp, 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh}
         ret.update(
             {'offset_map': offset_map.numpy(), 'offset_mask': ct_mask[None,].numpy(), 'cat_id': cat_target.numpy()})
@@ -212,9 +201,6 @@ class CTDetDataset(data.Dataset):
         if self.opt.iou_loss:
             ret['target_box'] = target_box
 
-        # print(type(ret['input']), type(ret['hm']), type(ret['reg_mask']), type(ret['ind']), type(ret['wh']), type(ret['offset_map']), type(ret['offset_mask']), type(ret['cat_id']))
-        # print(ret['input'].dtype, ret['hm'].dtype, ret['reg_mask'].dtype, ret['ind'].dtype, ret['wh'].dtype, ret['offset_map'].dtype, ret['offset_mask'].dtype, ret['cat_id'].dtype)
-        # print(ret['input'].shape, ret['hm'].shape, ret['reg_mask'].shape, ret['ind'].shape, ret['wh'].shape)
         if self.opt.dense_wh:
             hm_a = hm.max(axis=0, keepdims=True)
             dense_wh_mask = np.concatenate([hm_a, hm_a], axis=0)
@@ -230,8 +216,6 @@ class CTDetDataset(data.Dataset):
                 np.zeros((1, 6), dtype=np.float32)
             meta = {'c': c, 's': s, 'gt_det': gt_det, 'img_id': img_id}
             ret['meta'] = meta
-
-
 
         return ret
 
@@ -251,5 +235,4 @@ class CTDetDataset(data.Dataset):
                 ret['meta'] = batch[0]['meta'] # meta仅在eval时出现
             else:
                 ret[k] = torch.stack([torch.tensor(batch[i][k]) for i in range(len(batch))], 0)
-        #print(ret['target_box'].shape, ret['target_box'])
         return ret

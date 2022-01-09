@@ -27,7 +27,6 @@ class CtCamWeakLoss(torch.nn.Module):
             # pool把heatmap变为预测向量，不需要sigmoid
             # multilabel_soft_margin_loss 不需要sigmoid
             hm_loss += F.multilabel_soft_margin_loss(output['hm'], batch['cat_id']) / opt.num_stacks
-
             cam_aggr_loss += F.multilabel_soft_margin_loss(output['aggregation'], batch['cat_id']) / opt.num_stacks
 
         if not 'aggregation' in outputs[0]:
@@ -35,7 +34,6 @@ class CtCamWeakLoss(torch.nn.Module):
 
         loss = hm_loss + cam_aggr_loss  # zero out wh/off/cam_off loss
         loss_stats = {'loss': loss, 'hm_loss': hm_loss, 'cam_aggr_loss': cam_aggr_loss}
-        # print(loss_stats)
         return loss, loss_stats
 
 
@@ -52,11 +50,8 @@ class CtdetWeakLoss(torch.nn.Module):
         hm_loss = 0
         for s in range(opt.num_stacks):
             output = outputs[s]
-            # pool把heatmap变为预测向量，不需要sigmoid
-            # multilabel_soft_margin_loss 不需要sigmoid
             hm_loss += F.multilabel_soft_margin_loss(output['hm'], batch['cat_id']) / opt.num_stacks
 
         loss = hm_loss  # zero out wh/off/cam_off loss
         loss_stats = {'loss': loss, 'hm_loss': hm_loss}
-        # print(loss_stats)
         return loss, loss_stats

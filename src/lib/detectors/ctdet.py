@@ -33,8 +33,6 @@ class CtdetDetector(BaseDetector):
             wh = output['wh']
             reg = output['reg'] if self.opt.reg_offset else None
 
-            # hm = torch.tensor(anno['hm'], device=output['hm'].device)
-            # wh = torch.tensor(anno['wh'], device=output['wh'].device)
             if self.opt.flip_test: # false
                 hm = (hm[0:1] + flip_tensor(hm[1:2])) / 2
                 wh = (wh[0:1] + flip_tensor(wh[1:2])) / 2
@@ -65,7 +63,6 @@ class CtdetDetector(BaseDetector):
             results[j] = np.concatenate(
                 [detection[j] for detection in detections], axis=0).astype(np.float32)
             if len(self.scales) > 1 or self.opt.nms:
-                #print('run NMS, thres=%.1f'%self.opt.nms_thres)
                 soft_nms(results[j], Nt=self.opt.nms_thres, method=2)
         scores = np.hstack(
             [results[j][:, 4] for j in range(1, self.num_classes + 1)])

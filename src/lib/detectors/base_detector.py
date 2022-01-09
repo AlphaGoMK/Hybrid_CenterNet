@@ -164,7 +164,6 @@ class BaseDetector(object):
             if not pre_processed:
                 images, meta = self.pre_process(image, scale, meta)
             else:
-                # import pdb; pdb.set_trace()
                 images = pre_processed_images['images'][scale][0]
                 meta = pre_processed_images['meta'][scale]
                 meta = {k: v.numpy()[0] for k, v in meta.items()}
@@ -184,7 +183,6 @@ class BaseDetector(object):
                 if len(ct_list) == 0:
                     ct_list = torch.zeros(1, 2, device=output['hm'].device).long()
                 ct_list = ct_list.view(ct_list.shape[0], ct_list.shape[-1])
-                # off_map = torch.tensor(anno['offset_map']) * torch.tensor(anno['offset_mask'])
                 off_map = output['offset_map'][0].cpu()
                 off_map = (off_map ** 2).sum(dim=0).unsqueeze(0).permute(1, 2, 0)
                 torch.set_printoptions(profile="full")
@@ -199,14 +197,9 @@ class BaseDetector(object):
                 cv2.imwrite('offset_map/%s' % anno['file_name'], fig)
 
             vis_hm = False
-            if vis_hm:
-                # det_cat = dets[0,:,-1].int().unique()
-                # det_cat = (torch.sigmoid(output['aggregation'][0])>=test_thres).nonzero().view(-1)
-                det_cat = [int(ann_cat) for ann_cat in anno['cat_id']]
-                #plot_feat = torch.tensor(anno['hm'])
-
+            if vis_hm:  # 可视化预测/GT的heatmap图
+                det_cat = [int(ann_cat) for ann_cat in anno['cat_id']] # 现有类别
                 plot_feat = output['hm']
-                print(plot_feat.shape, plot_feat.max(), plot_feat.min())
                 for cat in det_cat:
                     heatmap = cv2.resize(plot_feat[0, cat][None,].permute(1, 2, 0).cpu().numpy(),
                                          (output['hm'].shape[-1] * 4, output['hm'].shape[-2] * 4))  # param: WH
@@ -220,12 +213,10 @@ class BaseDetector(object):
             net_time += forward_time - pre_process_time
             decode_time = time.time()
             dec_time += decode_time - forward_time
-
             if self.opt.debug >= 2:
                 self.debug(debugger, images, dets, output, scale)
 
             dets = self.post_process(dets, meta, scale) # 按照类别
-
             torch.cuda.synchronize()
             post_process_time = time.time()
             post_time += post_process_time - decode_time
@@ -233,15 +224,13 @@ class BaseDetector(object):
             detections.append(dets)
 
         results = self.merge_outputs(detections)
-
         torch.cuda.synchronize()
         end_time = time.time()
         merge_time += end_time - post_process_time
         tot_time += end_time - start_time
 
-
         cam_li = []
-        vis_cam = self.opt.vis_cam # only when web-based visualization
+        vis_cam = self.opt.vis_cam # 只有在网页端可视化的时候开启
         if vis_cam:
             det_cat = []
             for j in range(1, self.num_classes + 1):
@@ -254,19 +243,16 @@ class BaseDetector(object):
 
             plot_feat = torch.tensor(output['hm'])
 
-            # plot_feat = output['hm']
             for cat in det_cat:
                 heatmap = cv2.resize(plot_feat[0, cat][None,].permute(1, 2, 0).cpu().numpy(),
                                      (output['hm'].shape[-1] * 4, output['hm'].shape[-2] * 4))  # param: WH
                 heatmap = cv2.applyColorMap((heatmap * 255).astype(np.uint8), cv2.COLORMAP_JET)  # 变channel=3
                 draw_image = cv2.resize(image, (heatmap.shape[1], heatmap.shape[0]))
                 fig = (draw_image * 0.5 + heatmap * 0.5).astype(np.uint8)
-                # cam_filepath = './static/heatmap/cam_%s_%s.jpg' % (getfilename(image_or_path_or_tensor), self.class_name[cat])
                 cam_filepath = './static/heatmap/cam_%s.jpg' % self.class_name[cat].replace(' ', '_')
                 cv2.imwrite(cam_filepath, fig)
                 cam_li.append((self.chinese_name[self.class_name[cat]], cam_filepath.replace('./static/', '')))
                 print('save [%s]' % cam_filepath)
-
 
         res_img = ''
         if self.opt.debug >= 1: # 都会执行
@@ -274,7 +260,6 @@ class BaseDetector(object):
                 res_img = self.show_results(debugger, image, results, img_name=image_or_path_or_tensor)
             else:
                 rand_name = random_filename(''.join(random.sample('zyxwvutsrqponmlkjihgfedcba',7))+'.jpg')
-                print('rand_name', rand_name)
                 res_img = self.show_results(debugger, image, results, img_name=rand_name)
 
         return {'results': results, 'tot': tot_time, 'load': load_time,

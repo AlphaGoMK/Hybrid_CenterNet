@@ -70,12 +70,9 @@ class CtCamLoss(torch.nn.Module):
                                           batch['ind'], batch['reg']) / opt.num_stacks
 
             if 'offset_map' in output:
-                # print(batch['offset_mask'].sum(), output['offset_map'].shape, batch['offset_map'].shape)
-                # cam_off_loss += (F.l1_loss(output['offset_map'], batch['offset_map'], reduce=False).sum(dim=1)[:,None,] * batch['offset_mask']).mean() / opt.num_stacks
                 cam_off_loss += F.l1_loss(output['offset_map'] * batch['offset_mask'],
                                           batch['offset_map'] * batch['offset_mask']) / opt.num_stacks
-                # print(output['offset_map'].shape, batch['offset_map'].shape, batch['offset_mask'].shape, batch['offset_map'][0,0], batch['offset_mask'][0])
-                # print(cam_off_loss, batch['offset_mask'].sum())
+
             if 'aggregation' in output:
                 cam_aggr_loss += F.multilabel_soft_margin_loss(output['aggregation'], batch['cat_id']) / opt.num_stacks
 
@@ -91,5 +88,4 @@ class CtCamLoss(torch.nn.Module):
         loss_stats = {'loss': loss, 'hm_loss': hm_loss,
                       'wh_loss': wh_loss, 'off_loss': off_loss,
                       'cam_off_loss': cam_off_loss, 'cam_aggr_loss': cam_aggr_loss}
-        # print(loss_stats)
         return loss, loss_stats

@@ -36,11 +36,8 @@ def main(opt):
     else:
         logger = None
 
-    # os.environ['CUDA_VISIBLE_DEVICES'] = opt.gpus_str
     print('{} opt gpus'.format(opt.gpus))
     print('{} opt gpus[0]'.format(opt.gpus[0]))
-    # opt.device = torch.device('cuda' if opt.gpus[0] >= 0 else 'cpu')
-    # opt.device = torch.device('cuda')
     opt.device = device
     print(opt.device)
 
@@ -48,29 +45,9 @@ def main(opt):
     model = create_model(opt.arch, opt.heads, opt.head_conv)
     model.to(device)
 
-    if True:
-        optimizer = torch.optim.Adam(model.parameters(), opt.lr)  # baseline
-
-        ''' cam head
-        assert len([param for name, param in model.named_parameters() if 'cam_head' not in name]) + len([param for param in model.cam_head.parameters()]) == len([param for param in model.parameters()])
-        optimizer = torch.optim.Adam(
-            [{'params': [param for name, param in model.named_parameters() if 'base' not in name]}, 
-            {'params': model.base.parameters(), 'lr': opt.prm_lr[0]}], 
-            lr=opt.lr)
-        '''
-    else:
-        print('WEAK optimizer')
-        assert len([param for name, param in model.named_parameters() if 'base' not in name]) + len(
-            [param for param in model.base.parameters()]) == len([param for param in model.parameters()])
-        optimizer = torch.optim.Adam(
-            [{'params': [param for name, param in model.named_parameters() if 'base' not in name]},
-             {'params': model.base.parameters(), 'lr': opt.lr * 0.1}],  # 0.1 x lr for backbone
-            lr=opt.lr)
+    optimizer = torch.optim.Adam(model.parameters(), opt.lr)  # baseline
 
     start_epoch = 0
-    #    if opt.load_model != '':
-    #        model, optimizer, start_epoch = load_model(
-    #            model, opt.load_model, optimizer, opt.resume, opt.lr, opt.lr_step, local_rank)
 
     if opt.load_model != '':
         model = load_model(model, opt.load_model)
@@ -81,10 +58,8 @@ def main(opt):
                                                       output_device=local_rank,
                                                       find_unused_parameters=True)
     trainer = Trainer(opt, model, optimizer, local_rank)
-    # trainer.set_device(opt.gpus, opt.chunk_sizes, opt.device)
 
     print('Setting up data...')
-    # dataset_val = Dataset(opt, 'val')
     dataset_val = Dataset(opt, 'val')
     val_loader = torch.utils.data.DataLoader(
         dataset_val,
@@ -152,23 +127,11 @@ def main(opt):
             save_model(os.path.join(opt.save_dir, 'model_{}.pth'.format(epoch)),
                        epoch, model, optimizer)
 
-        if True:
-            if epoch in opt.lr_step:
-                lr = opt.lr * (0.1 ** (opt.lr_step.index(epoch) + 1))
-                print('Drop LR to', lr)
-                for param_group in optimizer.param_groups:
-                    param_group['lr'] = lr
-
-            '''
-            if epoch in opt.lr_step:    # drop base part
-                lr = opt.lr * (0.1 ** (opt.lr_step.index(epoch) + 1))
-                print('Drop LR to', lr)
-                optimizer.param_groups[0]['lr'] = lr
-            if epoch in opt.prm_lr_step:    # drop prm part
-                lr = opt.prm_lr[opt.prm_lr_step.index(epoch)+1]
-                print('Drop PRM LR to', lr)
-                optimizer.param_groups[1]['lr'] = lr
-            '''
+        if epoch in opt.lr_step:
+            lr = opt.lr * (0.1 ** (opt.lr_step.index(epoch) + 1))
+            print('Drop LR to', lr)
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = lr
         else:  # backbone x 0.1 at weak training
             if epoch in opt.lr_step:  # drop base part
                 lr = opt.lr * (0.1 ** (opt.lr_step.index(epoch) + 1))

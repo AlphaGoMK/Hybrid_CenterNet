@@ -223,10 +223,7 @@ class NewPrefetchDataset(torch.utils.data.Dataset):
             cat_id = torch.tensor(cat_id).unique()  # 初始化为-1 or 0
             cat_target = torch.zeros(num_classes).long()
             cat_target[cat_id] = 1
-            # print(offset_map[:, ct_list.T[0], ct_list.T[1]], offset_map[:, ct_list.T[1], ct_list.T[0]])
-        # ret = {'input': inp, 'hm': hm, 'reg_mask': reg_mask, 'ind': ind, 'wh': wh}
-        # ret.update({'offset_map': offset_map.numpy(), 'offset_mask': ct_mask[None,].numpy(), 'cat_id': cat_target.numpy()})
-        # print(hm.shape, dense_wh.shape, offset_map.numpy().shape)
+
         return img_id, {'images': images, 'image': image, 'meta': meta, 'hm': torch.tensor(hm)[None,],
                         'wh': torch.tensor(dense_wh)[None,], 'reg': offset_map[None,], 'file_name': file_name,
                         'cat_id': cat_id,

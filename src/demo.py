@@ -92,12 +92,10 @@ def det_eval(opt, image_name):
             rval, frame = cap.read()
             if not rval:
                 break
-            # cv2.imwrite(os.path.join(fdname, 'img_%d.jpg'%img_cnt), frame)
 
             ret = detector.run(frame)
             ret_vid.write(cv2.imread(ret['img_path']))
 
-            # ret_vid.write(ret)
         ret_vid.release()
         print('save at [%s]'%ret_path)
         print('time: [%.3f]ms'%(time.time()-start_time))

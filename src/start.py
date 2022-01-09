@@ -11,9 +11,6 @@ from flask import Flask, url_for, request, render_template, session, redirect
 from opts import opts
 from demo import det_eval
 
-# reload(sys)
-# sys.setdefaultencoding("utf-8")
-
 # 这里应该将static_url_path设为空，否则html中的每个资源连接都要以static开头才行，但是static_folder不要动，当来一个请求url时，会到static_folder下找静态文件，但是也会匹配static_url_path开头
 app = Flask(__name__, static_url_path='')  # ,static_folder='',
 
@@ -104,7 +101,6 @@ def uploadfile():
     # 删除上一次的video
     tep = session.get('file_after')
 
-    # print('*'*10, session.get('file_after'))
     if tep is not None:
         if op.exists(tep): os.remove(tep)
         print("remove ", tep)
@@ -116,9 +112,7 @@ def uploadfile():
         if op.exists(tep): os.remove(tep)
         print("remove ", tep)
         session.pop("file_fps")
-    ###################################################################
 
-    # intercnt = request.form.get('intercnt', type=int, default=1)
     files = request.files.get('file')
     nms_thres = request.form.get('nms_thres', type=float, default=1)/10 # range只能获得整数，转为小数
     hyb_model = request.form.get('hyb_model', type=bool, default=False) # 没有选择checkbox时，没有hyb属性，选择默认值False
@@ -151,7 +145,6 @@ def uploadfile():
             outpath = convert_mp4_h264(outpath)
 
         os.system('cp %s %s' % (outpath, result_path))
-        # print('cp %s %s'%(outpath, result_path))
 
         session['file_fps'] = uploadresult_path
         session['file_after'] = op.join(result_path, getfilename(outpath))
@@ -178,7 +171,6 @@ if __name__ == '__main__':
     os.makedirs(result_path, exist_ok=True)
     os.makedirs(heatmap_path, exist_ok=True)
 
-    # app.debug = True#不可用于发布版本
     app.send_file_max_age_default = timedelta(seconds=1)
     app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024  # 30M
     app.secret_key = os.urandom(24)

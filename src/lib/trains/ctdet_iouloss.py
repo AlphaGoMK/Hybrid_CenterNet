@@ -19,9 +19,6 @@ def cal_GTPred_IoU(target, pred):
         subtar = target[target[:,-1]==i, :4] # 最后一维是batch id
         sub_iou = pairwise_iou(pred[i][:,:4], subtar) # 100xN
 
-        # print(pred[i][:,:4].shape, subtar.shape, sub_iou.shape)
-        # print(pred[i][:,:4].max(), subtar.max(), sub_iou.max(), sub_iou.sum())
-        # print(sub_iou[:10], sub_iou.max(), sub_iou.sum())
         if sub_iou.numel():
             sub_iou = torch.max(sub_iou, dim=-1)[0]
         else:
@@ -55,8 +52,6 @@ class CtIoULoss(torch.nn.Module):
                 output['hm'] = _sigmoid(output['hm'])
             # FL 需要之前sigmoid，multilabel不需要提前sigmoid
 
-            # hm = torch.tensor(anno['hm'], device=output['hm'].device)
-            # wh = torch.tensor(anno['wh'], device=output['wh'].device)
             torch.cuda.synchronize()
             dets, ys, xs = new_ctdet_decode(output['hm'], output['wh'], reg=output['reg'], cat_spec_wh=self.opt.cat_spec_wh,
                                 K=self.opt.K)  # [1,100,6], x1,y1,x2,y2,conf,cat
@@ -71,20 +66,7 @@ class CtIoULoss(torch.nn.Module):
 
             beta = 0.1
             batch['hm'] += iou_map * beta
-            #print(batch['hm'].min(), batch['hm'].max())
             batch['hm'] = batch['hm'].clamp(0,1)
-
-            # with open('%s.txt'%(0), 'w+') as f:
-            #     for i in range(batch['hm'][0,0].shape[0]):
-            #         for j in range(batch['hm'][0,0].shape[1]):
-            #             f.write('%.3f '%batch['hm'][0,0][i][j])
-            #         f.write('\n')
-            # with open('iou_%s.txt'%(0), 'w+') as f:
-            #     for i in range(batch['hm'][0,0].shape[0]):
-            #         for j in range(batch['hm'][0,0].shape[1]):
-            #             f.write('%.3f '%iou_map[0,0][i][j])
-            #         f.write('\n')
-            # assert False
 
             # use GT to train
             if opt.eval_oracle_hm:
@@ -121,12 +103,8 @@ class CtIoULoss(torch.nn.Module):
                                           batch['ind'], batch['reg']) / opt.num_stacks
 
             if 'offset_map' in output:
-                # print(batch['offset_mask'].sum(), output['offset_map'].shape, batch['offset_map'].shape)
-                # cam_off_loss += (F.l1_loss(output['offset_map'], batch['offset_map'], reduce=False).sum(dim=1)[:,None,] * batch['offset_mask']).mean() / opt.num_stacks
                 cam_off_loss += F.l1_loss(output['offset_map'] * batch['offset_mask'],
                                           batch['offset_map'] * batch['offset_mask']) / opt.num_stacks
-                # print(output['offset_map'].shape, batch['offset_map'].shape, batch['offset_mask'].shape, batch['offset_map'][0,0], batch['offset_mask'][0])
-                # print(cam_off_loss, batch['offset_mask'].sum())
             if 'aggregation' in output:
                 cam_aggr_loss += F.multilabel_soft_margin_loss(output['aggregation'], batch['cat_id']) / opt.num_stacks
 
@@ -142,5 +120,4 @@ class CtIoULoss(torch.nn.Module):
         loss_stats = {'loss': loss, 'hm_loss': hm_loss,
                       'wh_loss': wh_loss, 'off_loss': off_loss,
                       'cam_off_loss': cam_off_loss, 'cam_aggr_loss': cam_aggr_loss}
-        # print(loss_stats)
         return loss, loss_stats
